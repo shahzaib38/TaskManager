@@ -15,6 +15,7 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,8 +40,9 @@ import kotlin.math.roundToInt
 fun TaskItemWithSwipe(mappedData : SnapshotStateList<Task>,
                       index :Int,
                       onClick:(Task)->Unit,
-                      removeAt:(Task)->Unit,
-                      isDragging : Boolean ){
+                      removeAt:(Task,Int )->Unit,
+                      isDragging : Boolean,
+                      deleteItems :  MutableState<Pair<Task, Int>?> ){
 
 
 
@@ -57,7 +59,7 @@ fun TaskItemWithSwipe(mappedData : SnapshotStateList<Task>,
     val swipeToDismissState =      rememberSwipeToDismissBoxState(
         confirmValueChange = {
             when(it) {
-                SwipeToDismissBoxValue.Settled -> return@rememberSwipeToDismissBoxState false
+                SwipeToDismissBoxValue.Settled -> return@rememberSwipeToDismissBoxState true
                 SwipeToDismissBoxValue.StartToEnd -> {
                     isRemoved = true }
                 SwipeToDismissBoxValue.EndToStart -> {
@@ -69,10 +71,21 @@ fun TaskItemWithSwipe(mappedData : SnapshotStateList<Task>,
         }, positionalThreshold = { it * 0.25f })
 
 
+//
+    LaunchedEffect(deleteItems) {
+        if (deleteItems.value != null && index == deleteItems.value?.second) {
+            swipeToDismissState.snapTo(SwipeToDismissBoxValue.Settled)
+            isRemoved = false
+            isCompleted.value = false
+            deleteItems.value = null
+        }
+    }
+
+
     LaunchedEffect(isRemoved) {
         if (isRemoved) {
             delay(500) // Wait for animation completion
-            removeAt(mappedData.removeAt(index = index)) } }
+            removeAt(mappedData.removeAt(index = index),index) } }
 
 
 
@@ -102,9 +115,3 @@ fun TaskItemWithSwipe(mappedData : SnapshotStateList<Task>,
 }
 
 
-
-fun <T> MutableList<T>.swap(i: Int, j: Int) {
-    if (i in indices && j in indices) {
-        Collections.swap(this, i, j)
-    }
-}

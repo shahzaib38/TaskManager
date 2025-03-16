@@ -50,20 +50,14 @@ fun  CustomProgressBar(animatedSweepAngle: Float){
                     color = outerColor,
                     startAngle = -90f,
                     sweepAngle = 360f,
-                    useCenter = true,
-                //    style = Stroke(width = strokeWidthPx, cap = StrokeCap.Round)
-
-                )
+                    useCenter = true)
 
 
                 drawArc(
                     brush = gradientBrush,
                     startAngle = -90f,
                     sweepAngle = animatedSweepAngle,
-                    useCenter = true ,
-                //    style = Stroke(width = strokeWidthPx, cap = StrokeCap.Round)
-
-                )
+                    useCenter = true)
 
 
                         },

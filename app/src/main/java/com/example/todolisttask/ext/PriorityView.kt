@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -96,17 +97,13 @@ fun PriorityIcon( task: State<Task>,
 }
 
 
-
-//
-
-
 @Composable
 fun PriorityList(task : State<Task>,
                  onPrioritySelected: (Priority) -> Unit){
 
     val prioritiesList =  remember {  Priority.entries.toList()}
 
-    LazyColumn {
+    LazyRow {
         items(count = prioritiesList.size){index ->
             RadioItem(priority = prioritiesList[index],
                 task,
