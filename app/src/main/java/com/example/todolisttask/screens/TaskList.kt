@@ -7,9 +7,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,6 +35,7 @@ import com.example.todolisttask.shimmer.ShimmerEffect
 import com.example.todolisttask.systemUi.ManageSystemBars
 import com.example.todolisttask.topbar.TopBar
 import com.example.todolisttask.viewmodel.TaskViewModel
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -51,22 +58,47 @@ import com.example.todolisttask.viewmodel.TaskViewModel
           val filterClick = remember { { taskViewModel.setDialog(DialogType.Filter) } }
           val navigateToCreation = remember { { taskNavigation.navigate(TaskCreation(Task()).createRoute()) }}
           val quickNavigate = remember<(String)->Unit > { { title -> taskNavigation.navigate(TaskCreation(Task(title = title)).createRoute()) } }
+          val snackbarHostState = remember { SnackbarHostState() }
+          val coroutineScope = rememberCoroutineScope()
+
 
 
     val navigateToDetails = remember<(Task)->Unit > {{ task ->
-
-
-        taskNavigation.navigate(TaskDetails(task).createRoute())
-
-    }
-    }
+        taskNavigation.navigate(TaskDetails(task).createRoute()) } }
 
 
         ManageSystemBars( barColor = Color.White,
                           isVisible = true)
 
+
+
+    LaunchedEffect(Unit) {
+        taskViewModel.snackbarListFlow.collect { message ->
+            coroutineScope.launch {
+
+               val snackbarResult = snackbarHostState.showSnackbar(
+                    message = "Task deleted",
+                    actionLabel = "Undo",
+                    duration = SnackbarDuration.Short
+                )
+
+
+                when(snackbarResult){
+                    SnackbarResult.Dismissed -> {}
+                    SnackbarResult.ActionPerformed -> {
+                        taskViewModel.restoreDeletedTask()
+
+                    }
+                }
+            }
+        }
+    }
+
+
     Box(modifier = Modifier.fillMaxSize()) {
-            Scaffold(topBar = {
+            Scaffold(
+                snackbarHost = { SnackbarHost(snackbarHostState) }
+                ,topBar = {
 
                 TopBar(onMenuClick = onMenuClick, filterClick = filterClick)
 
@@ -110,10 +142,11 @@ fun TaskScreen(taskViewModel: TaskViewModel ,
             taskState.isLoading -> ShimmerEffect()
             taskState.data.isNotEmpty() -> TaskTimelineView(
                 taskState = taskState,
-                taskViewModel::removeTask,
+                removeItem = taskViewModel::removeTask,
                 sortItems = taskViewModel.sortItems,
                 filterItems = taskViewModel.filterItems,
-                onClick = onClick
+                onClick = onClick,
+               deleteItems =  taskViewModel.deletedTaskState
                 )
 
             else -> EmptyListView()

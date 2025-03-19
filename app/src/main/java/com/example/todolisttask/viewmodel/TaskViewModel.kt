@@ -1,10 +1,13 @@
 package com.example.todolisttask.viewmodel
 
 import android.util.Log
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,6 +26,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -48,17 +52,55 @@ class TaskViewModel  @Inject constructor(
     private val _snackbarFlow = MutableSharedFlow<String>()
     val snackbarFlow = _snackbarFlow.asSharedFlow()
 
+
+    private val _snackbarListFlow = MutableSharedFlow<String>()
+    val snackbarListFlow = _snackbarListFlow.asSharedFlow()
+
+
     private val _Task = mutableStateOf(Task())
     val task: State<Task> get() = _Task
 
     val sortItems =  mutableStateOf<Sort?>(null )
     val filterItems =  mutableStateOf<Filter>(Filter.All )
 
-
     val primaryColor = mutableStateOf(Purple40)
 
+    //
 
-   fun  setTheme(isDark : Boolean){
+
+    val deletedTasks = mutableStateMapOf<Task, Int>() // Stores deleted task + original index
+
+    private val _deletedTaskState = mutableStateOf<Pair<Task, Int>?>(null ) // Holds Task + Index
+    val deletedTaskState  = _deletedTaskState
+
+    fun saveLastDelete(task: Task, index: Int) {
+        deletedTasks[task] = index
+
+        _deletedTaskState.value = null
+
+//        viewModelScope.launch {
+//            _deletedTaskFlow.emit(task to index)
+//        }
+    }
+
+    fun restoreDeletedTask() {
+        if (deletedTasks.isNotEmpty()) {
+            val (task, index) = deletedTasks.entries.first() // Get the first deleted task
+
+            viewModelScope.launch(Dispatchers.IO) {
+
+                repository.addTask(task)
+
+                _deletedTaskState.value = Pair(task,index)
+              //  _deletedTaskFlow.emit(task to index) // Emit task + index for restoration
+            }
+
+            deletedTasks.remove(task) // Remove from deletedTasks after restoring
+        }
+    }
+
+
+    fun  setTheme(isDark : Boolean){
        isDarkTheme.value = isDark }
 
     fun updateCompleted(isCompleted : Boolean ){
@@ -114,17 +156,22 @@ class TaskViewModel  @Inject constructor(
     fun setPriority(priority: Priority) {
         _Task.value = _Task.value.copy(priority = priority) }
 
-    fun setDateTime(date: Long,
-                    time: Long) {
+    fun setDateTime(date: Long) {
 
-     val timeMillis =   Common.mergeDateTime(dateMillis = date, timeMillis = time)
-        _Task.value = _Task.value.copy(dueDate = timeMillis)
+        _Task.value = _Task.value.copy(dueDate = date)
 
     }
 
-    fun removeTask(task: Task) {
+    fun removeTask(task: Task,index :Int ) {
         viewModelScope.launch(Dispatchers.IO) {
-           repository.remove(task) } }
+
+           repository.remove(task)
+
+
+            saveLastDelete(task,index)
+            _snackbarListFlow.emit("Item Delete")
+        }
+    }
 
     fun sort(sort: Sort) {
         sortItems.value  = sort

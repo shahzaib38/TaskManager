@@ -1,5 +1,6 @@
 package com.example.todolisttask.common
 
+import android.util.Log
 import androidx.compose.ui.graphics.Color
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -44,12 +45,16 @@ object Common {
     //
 
 
-    fun formatMillis(millis: Long): String =
-        if (millis == 0L) {
+    fun formatMillis(millis: Long): String {
+
+        Log.i("CommonImpl" , "MillisSecond ${millis}")
+
+        return  if (millis == 0L) {
             "Set Date"
         } else {
             val sdf = SimpleDateFormat("dd-MM-yyyy @ HH:mm", Locale.getDefault())
             sdf.format(Date(millis))
+        }
         }
 
 

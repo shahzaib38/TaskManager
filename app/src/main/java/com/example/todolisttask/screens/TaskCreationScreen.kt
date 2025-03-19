@@ -87,11 +87,8 @@ fun TaskCreation(task : Task,
             this.updateId(task.id)
             this.updateDescription(task.description)
             this.setPriority(task.priority)
-            this.setDateTime(task.dueDate,0)
-            this.onComplete(task.isCompleted )
-
-        }
-    }
+            this.setDateTime(task.dueDate)
+            this.onComplete(task.isCompleted ) } }
 
     val dateChange = remember { {taskViewModel.setDialog(DialogType.DatePicker) }}
     var isExiting by remember { mutableStateOf(false) }
@@ -155,8 +152,7 @@ fun TaskCreation(task : Task,
     ManageStatusBar(isVisible = false, color = color)
 
     Scaffold(modifier = Modifier
-        .background(Color.Red)
-        .verticalScroll(scrollState).
+        .background(Color.Red).
     circularReveal( progress = transitionProgress ,
         points = Offset(0f,1f)),
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -201,9 +197,12 @@ fun TaskCreation(task : Task,
 
 
 
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.wrapContentHeight()) {
             Column(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .verticalScroll(scrollState)
                     .padding(contentPadding),
                 verticalArrangement = Arrangement.spacedBy(12.dp)) {
 
@@ -228,9 +227,6 @@ fun TaskCreation(task : Task,
 
     }
 }
-
-
-//
 
 
 @Composable

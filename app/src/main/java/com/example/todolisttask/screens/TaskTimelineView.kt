@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -15,6 +16,8 @@ import com.example.todolisttask.filter.Filter
 import com.example.todolisttask.model.Task
 import com.example.todolisttask.model.TaskState
 import com.example.todolisttask.sort.Sort
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.collect
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
@@ -22,10 +25,11 @@ import org.burnoutcrew.reorderable.reorderable
 
 @Composable
 fun TaskTimelineView(taskState : TaskState ,
-                     removeItem : (Task)->Unit,
+                     removeItem : (Task,Int)->Unit,
                      sortItems : MutableState<Sort?>,
                      filterItems : MutableState<Filter>,
-                     onClick : (Task)->Unit) {
+                     onClick : (Task)->Unit,
+                     deleteItems :  MutableState<Pair<Task, Int>?>) {
 
 
     val mappedData = remember { mutableStateListOf<Task>() }
@@ -38,6 +42,14 @@ fun TaskTimelineView(taskState : TaskState ,
                 add(to.index, removeAt(from.index)) }
             haptic.performHapticFeedback(HapticFeedbackType.LongPress) })
 
+
+//    LaunchedEffect(deleteItems) {
+//        deleteItems.collect { (task, index) ->  // Correctly extracting Pair<Task, Int>
+//            if (!mappedData.contains(task)) {  // Check using task.first
+//                mappedData.add(index.coerceAtMost(mappedData.size), task) // Restore at original index
+//            }
+//        }
+//    }
 
     LaunchedEffect(taskState, sortItems.value, filterItems.value) {
         mappedData.apply {
@@ -63,8 +75,7 @@ fun TaskTimelineView(taskState : TaskState ,
     LazyColumn(modifier = Modifier.fillMaxSize()
         .reorderable(state)
         .detectReorderAfterLongPress(state),
-        state = state.listState
-    ) {
+        state = state.listState) {
 
 
 
@@ -76,8 +87,9 @@ fun TaskTimelineView(taskState : TaskState ,
             TaskItemWithSwipe(mappedData =mappedData,
                 onClick = onClick,
                 index = index, removeAt = removeItem,
-                isDragging = isDragging)
+                isDragging = isDragging,
+                deleteItems = deleteItems)
+            }
         }
-    }
     }
 }

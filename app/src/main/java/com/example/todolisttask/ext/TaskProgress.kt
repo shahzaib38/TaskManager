@@ -25,9 +25,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.todolisttask.R
 import com.example.todolisttask.custom.CustomProgressBar
 import com.example.todolisttask.model.Task
 
@@ -54,18 +57,21 @@ fun TaskProgress(task: State<Task>){
 
         Column(modifier = Modifier.weight(.7f).padding(horizontal = 12.dp)
             .wrapContentHeight().background(Color.Transparent),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
             horizontalAlignment = Alignment.Start) {
 
             Text("Task Progress: ${percentage}%", textAlign = TextAlign.Start,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-                )
+                overflow = TextOverflow.Ellipsis,
+                fontFamily = FontFamily(listOf(Font(R.font.roboto_bold))))
+
             Text("Status: ${if (isCompleted) "Completed" else "Pending"}", textAlign = TextAlign.Start,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis)
+                overflow = TextOverflow.Ellipsis,
+                fontFamily = FontFamily(listOf(Font(R.font.roboto_bold))))
 
-        } }
+        }
+    }
 
     Separator()
 

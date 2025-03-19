@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import com.example.todolisttask.common.Common
 import com.example.todolisttask.filter.Filter
 import com.example.todolisttask.menu.TaskMenuOption
 import com.example.todolisttask.model.DialogType
@@ -71,7 +72,9 @@ fun TaskDialogManager(taskViewModel: TaskViewModel ,
                 ,onDismiss = {
 
             }, onTimeSelected = { time ->
-                    taskViewModel.setDateTime( date, time)
+
+
+                    taskViewModel.setDateTime(Common.mergeDateTime(dateMillis = date, timeMillis = time))
                     taskViewModel.setDialog(DialogType.None)
 
             })
